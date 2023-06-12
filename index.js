@@ -35,8 +35,23 @@ async function run() {
     const classCollection = client.db('cookingDb').collection('class');
     const instructorCollection = client.db('cookingDb').collection('instructor');
     const bookedCollection = client.db('cookingDb').collection('booked');
+    const usersCollection = client.db('cookingDb').collection('users');
     
-    // Class collection
+
+    // Users related apis and collection
+    app.post('/users', async(req, res) => {
+        const user = req.body;
+        const query = { email : user.email};
+        const existingUser = await usersCollection.findOne(query);
+        if(existingUser){
+            return res.send({ message : 'User already Exists'});
+        }
+
+        const result = await usersCollection.insertOne(user);
+        res.send(result);
+    })
+    
+    // Class related apis and collection
     app.get('/class', async(req, res) => {
         const result = await classCollection.find().toArray();
         res.send(result);
@@ -44,14 +59,14 @@ async function run() {
 
 
 
-    // instructor collection
+    // instructor related apis and collection
     app.get('/instructor', async(req, res) => {
         const result = await instructorCollection.find().toArray();
         res.send(result);
     })
 
 
-    // Booked collection apis
+    // Booked related apis and collection apis
     app.get('/booked', async(req, res) => {
         const email = req.query.email;
         if(!email){
@@ -59,12 +74,12 @@ async function run() {
         }
         const query = { email : email};
         const result = await bookedCollection.find(query).toArray();
-        res.send(result);
+        res.send(result);1
     })
     
     app.post('/booked', async(req, res) => {
         const item = req.body;
-        console.log(item);
+        // console.log(item);
         const result = await bookedCollection.insertOne(item);
         res.send(result);
     });
