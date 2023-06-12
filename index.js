@@ -39,6 +39,11 @@ async function run() {
     
 
     // Users related apis and collection
+    app.get('/users', async(req, res) => {
+        const result = await usersCollection.find().toArray();
+        res.send(result);
+    });
+
     app.post('/users', async(req, res) => {
         const user = req.body;
         const query = { email : user.email};
@@ -49,13 +54,38 @@ async function run() {
 
         const result = await usersCollection.insertOne(user);
         res.send(result);
+    });
+
+    app.patch('/users/admin/:id', async(req, res) => {
+        const id = req.params.id;
+        const filter = { _id : new ObjectId(id)};
+        const updatedDoc = {
+            $set: {
+                role : 'admin'
+            }
+        };
+        const result = await usersCollection.updateOne(filter, updatedDoc);
+        res.send(result);
     })
+    app.patch('/users/instructor/:id', async(req, res) => {
+        const id = req.params.id;
+        const filter = { _id : new ObjectId(id)};
+        const updatedDoc = {
+            $set: {
+                role : 'instructor'
+            }
+        };
+        const result = await usersCollection.updateOne(filter, updatedDoc);
+        res.send(result);
+    })
+
     
     // Class related apis and collection
     app.get('/class', async(req, res) => {
         const result = await classCollection.find().toArray();
         res.send(result);
     });
+
 
 
 
