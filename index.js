@@ -51,7 +51,17 @@ async function run() {
     })
 
 
-    // Booked collection
+    // Booked collection apis
+    app.get('/booked', async(req, res) => {
+        const email = req.query.email;
+        if(!email){
+            res.send([]);
+        }
+        const query = { email : email};
+        const result = await bookedCollection.find(query).toArray();
+        res.send(result);
+    })
+    
     app.post('/booked', async(req, res) => {
         const item = req.body;
         console.log(item);
