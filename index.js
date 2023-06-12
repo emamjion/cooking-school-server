@@ -31,8 +31,10 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     
+    // Collection Here
     const classCollection = client.db('cookingDb').collection('class');
     const instructorCollection = client.db('cookingDb').collection('instructor');
+    const bookedCollection = client.db('cookingDb').collection('booked');
     
     // Class collection
     app.get('/class', async(req, res) => {
@@ -45,6 +47,15 @@ async function run() {
     // instructor collection
     app.get('/instructor', async(req, res) => {
         const result = await instructorCollection.find().toArray();
+        res.send(result);
+    })
+
+
+    // Booked collection
+    app.post('/booked', async(req, res) => {
+        const item = req.body;
+        console.log(item);
+        const result = await bookedCollection.insertOne(item);
         res.send(result);
     })
     
