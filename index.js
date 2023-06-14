@@ -69,6 +69,16 @@ async function run() {
         }
         next();
     }
+    
+    const verifyInstructor = async(req, res, next) => {
+        const email = req.decoded.email;
+        const query = { email : email};
+        const user = await usersCollection.findOne(query);
+        if(user?.role !== 'instructor'){
+            res.status(403).send({email : true, message: 'Forbidden access'})
+        }
+        next();
+    }
 
 
     // Users related apis and collection
@@ -145,6 +155,11 @@ async function run() {
         res.send(result);
     });
 
+    app.post('/class', verifyJWT, verifyInstructor, async(req, res) => {
+        const newCourse = req.body;
+        const result = await classCollection.insertOne(newCourse);
+        res.send(result);
+    })
 
 
 
