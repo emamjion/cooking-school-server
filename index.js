@@ -1,10 +1,10 @@
 const express = require('express');
+require('dotenv').config()
 const app = express();
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const stripe = require("stripe")(process.env.PAYMENT_SECRET_KEY);
-require('dotenv').config()
 const port = process.env.PORT || 5000;
 
 
@@ -46,13 +46,14 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
     
     // Collection Here
     const classCollection = client.db('cookingDb').collection('class');
     const instructorCollection = client.db('cookingDb').collection('instructor');
     const bookedCollection = client.db('cookingDb').collection('booked');
     const usersCollection = client.db('cookingDb').collection('users');
+    const paymentCollection = client.db('cookingDb').collection('payments');
     
     app.post('/jwt', (req, res) => {
         const user = req.body;
@@ -203,9 +204,9 @@ async function run() {
     });
 
     // Payment
-    app.post('/create-payment-intent', async(req, res) => {
+    app.post('/create-payment-intent', verifyJWT,  async(req, res) => {
         const { price } = req.body;
-        const amount = parseFloat(price * 100);
+        const amount = price * 100;
         const paymentIntent = await stripe.paymentIntents.create({
             amount : amount,
             currency : 'usd',
@@ -214,7 +215,25 @@ async function run() {
         res.send({
             clientSecret : paymentIntent.client_secret
         })
-    })
+    });
+
+    // payment related api
+    app.post('/payments', verifyJWT,  async(req, res) => {
+        const payment = req.body;
+        const insertResult = await paymentCollection.insertOne(payment);
+
+        const query = {
+            _id : {$in : payment.bookeditems.map(id => new ObjectId(id))}
+        }
+        const deleteResult = await bookedCollection.deleteMany(query);
+
+        res.send({insertResult, deleteResult});
+    });
+
+    // app.get('/payments', async(req, res) => {
+    //     const result = await paymentCollection.find().toArray();
+    //     res.send(result);
+    // })
     
     
     
